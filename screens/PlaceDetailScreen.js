@@ -1,5 +1,12 @@
-import React from "react";
-import { ScrollView, View, Image, Text, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  ScrollView,
+  View,
+  Image,
+  Text,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
 import { useSelector } from "react-redux";
 
 import MapPreview from "../components/MapPreview";
@@ -11,16 +18,42 @@ const PlaceDetailScreen = (props) => {
     state.places.places.find((place) => place.id === placeId)
   );
 
+  const [dimension, setDimension] = useState(Dimensions.get("window"));
+
+  const onChange = (newDimension) => {
+    setDimension(newDimension);
+  };
+
+  useEffect(() => {
+    Dimensions.addEventListener("change", onChange);
+    return () => {
+      Dimensions.removeEventListener("change", onChange);
+    };
+  });
+
+  const selectedLocation = { lat: selectedPlace.lat, lng: selectedPlace.lng };
+
+  const showMapHandler = () => {
+    props.navigation.navigate("Map", {
+      readonly: true,
+      initialLocation: selectedLocation,
+    });
+  };
+
   return (
     <ScrollView contentContainerStyle={{ alignItems: "center" }}>
-      <Image source={{ uri: selectedPlace.imageUri }} style={styles.image} />
+      <Image
+        source={{ uri: selectedPlace.imageUri }}
+        style={{ ...styles.image, height: dimension.height * 0.4 }}
+      />
       <View style={styles.locationContainer}>
         <View style={styles.addressContainer}>
           <Text style={styles.address}>{selectedPlace.address}</Text>
         </View>
         <MapPreview
-          style={styles.mapPreview}
+          style={{ ...styles.mapPreview, height: dimension.height * 0.3}}
           location={{ lat: selectedPlace.lat, lng: selectedPlace.lng }}
+          onPress={showMapHandler}
         />
       </View>
     </ScrollView>
@@ -35,8 +68,6 @@ PlaceDetailScreen.navigationOptions = (navData) => {
 
 const styles = StyleSheet.create({
   image: {
-    height: "35%",
-    minHeight: 300,
     width: "100%",
     backgroundColor: "#ccc",
   },
@@ -64,7 +95,6 @@ const styles = StyleSheet.create({
   mapPreview: {
     width: "100%",
     maxWidth: 350,
-    height: 300,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
   },

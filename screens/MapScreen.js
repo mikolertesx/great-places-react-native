@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  View,
   Text,
   StyleSheet,
   TouchableOpacity,
@@ -10,20 +9,27 @@ import MapView, { Marker } from "react-native-maps";
 import Colors from "../constants/Colors";
 
 const MapScreen = (props) => {
-  const [selectedLocation, setSelectedLocation] = useState();
+  const initialLocation = props.navigation.getParam("initialLocation");
+  const readonly = props.navigation.getParam("readonly");
+  const [selectedLocation, setSelectedLocation] = useState(initialLocation);
 
-  const mapRegion = {
-    latitude: 37.78,
-    longitude: -122.43,
+  const [mapRegion, setMapRegion] = useState({
+    latitude: initialLocation ? initialLocation.lat : 37.78,
+    longitude: initialLocation ? initialLocation.lng : -122.43,
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
-  };
+  });
 
   const selectLocationHandler = (event) => {
+    if (readonly) return;
     setSelectedLocation({
       lat: event.nativeEvent.coordinate.latitude,
       lng: event.nativeEvent.coordinate.longitude,
     });
+  };
+
+  const regionChangeHandler = (region) => {
+    setMapRegion(region);
   };
 
   const savePickedLocationHandler = useCallback(() => {
@@ -51,6 +57,7 @@ const MapScreen = (props) => {
       region={mapRegion}
       style={styles.map}
       onPress={selectLocationHandler}
+      onRegionChangeComplete={regionChangeHandler}
     >
       {markerCoordinates && (
         <Marker title="Picked Location" coordinate={markerCoordinates}></Marker>
@@ -61,6 +68,11 @@ const MapScreen = (props) => {
 
 MapScreen.navigationOptions = (navData) => {
   const saveFn = navData.navigation.getParam("saveLocation");
+  const readonly = navData.navigation.getParam("readonly");
+
+  if (readonly) {
+    return {};
+  }
 
   return {
     headerRight: () => (

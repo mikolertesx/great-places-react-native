@@ -26,6 +26,7 @@ const MapPreview = (props) => {
           <Image style={styles.mapImage} source={{ uri: imagePreviewUrl }} />
         ) : (
           <MapView
+            scrollEnabled={false}
             region={{
               latitude: props.location.lat,
               longitude: props.location.lng,
